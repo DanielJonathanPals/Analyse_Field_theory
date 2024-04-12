@@ -1,7 +1,4 @@
-import Pkg
-Pkg.activate("../")
-
-include("Run_simulation.jl")
+include("run_simulation.jl")
 
 ToInt64(str::String) = Int64(parse(Float64, str))
 

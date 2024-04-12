@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.signal import convolve2d
 
-file_name = 'field_theory_model1_zI_0117_zB_0409_xsize_16_ysize_24_len_scale_3_modified'
+file_name = 'field_theory_model1_zI_001_zB_0516_xsize_128_ysize_192_len_scale_3_modified'
 
 def unpack_parameter(line_idx, data):
     line = data[line_idx].split("\n")[0]
@@ -76,7 +76,7 @@ def update(i):
                 alpha = alpha_I)
     
     ax.set_axis_off()
-    ax.set_title(f"time = {np.round(times[i], decimals = 2)}")
+    ax.set_title(f"time = {np.round(times[i], decimals = 2)}s")
 
 
 ani = animation.FuncAnimation(fig, update, len(times))

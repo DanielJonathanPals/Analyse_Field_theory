@@ -9,7 +9,7 @@ using LinearAlgebra
 
 # Encodes the current state of the lattice
 # E = 0, B = 1, I = 2
-mutable struct lattice
+struct lattice
     state::Matrix{Int8}
     state_with_boundaries::Matrix{Int8}
     boundaries::Dict{String, String}

@@ -10,6 +10,7 @@ function save_parameters(lattice_params, model_params, simulation_params, name)
             "The lower boundary is $(lattice_params["lower_bound"])",
             "The left boundary is $(lattice_params["left_bound"])",
             "The right boundary is $(lattice_params["right_bound"])",
+            "length scale = $(lattice_params["len_scale"])",
             "",
             "Model Parameters:",
             "epsilon = $(model_params["epsilon"])",

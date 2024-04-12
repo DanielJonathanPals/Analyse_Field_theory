@@ -1,5 +1,3 @@
-using Pkg
-Pkg.activate(".")
 using DelimitedFiles
 
 include("actions.jl")
@@ -81,7 +79,10 @@ function run_simulation(array_ID)
         end
 
         # Break if the simulation is finished
-        t > simulation_params["t_max"] && break
+        if t > simulation_params["t_max"] 
+            println("Simulation finished at t = $t since the maximum number of transitions was reached.")
+            break
+        end
     end
 
     # Save the data

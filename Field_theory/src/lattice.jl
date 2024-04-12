@@ -11,7 +11,7 @@ import Base.circshift
 # Encodes the current state of the lattice in an Array of size Lx x Ly x 2 where Lx and Ly are the spacial 
 # dimensions of the system and the first layer tracks the fraction of bonding state particles wheras the
 # secon layer track the fraction of inert particles.
-mutable struct lattice
+struct lattice
     state::Array{Float64}
     boundaries::Dict{String, String}
     function lattice(state, boundaries)
@@ -33,7 +33,7 @@ end
 
 # Alternative initiallization of the lattice
 function lattice(;lattice_size::Tuple{Int64,Int64}=(10,10),
-                    initialization::Union{String,Array}="random",    
+                    initialization::Union{String,Array{Float64}}="random",    
                     upper_boundary::String="periodic",
                     lower_boundary::String="periodic",
                     left_boundary::String="periodic",

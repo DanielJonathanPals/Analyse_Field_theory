@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.signal import convolve2d
 
-file_name = 'original_model1_zI_0117_zB_0409_xsize_128_ysize_192'
-length_scale = 16
+file_name = 'original_model1_zI_01_zB_0426_xsize_320_ysize_320'
 
 def unpack_parameter(line_idx, data):
     line = data[line_idx].split("\n")[0]
@@ -24,37 +23,41 @@ def read_parameters(file_name):
     data = file.readlines()
     file.close()
     size = unpack_parameter(1, data)
-    dmu = unpack_parameter(9, data)
-    z_I = unpack_parameter(10, data)
-    z_B = unpack_parameter(11, data)
-    t_max = unpack_parameter(15, data)
-    save_interval = unpack_parameter(17, data)
-    return size, dmu, z_I, z_B, t_max, save_interval
+    length_scale = unpack_parameter(6, data)
+    dmu = unpack_parameter(10, data)
+    z_I = unpack_parameter(11, data)
+    z_B = unpack_parameter(12, data)
+    t_max = unpack_parameter(16, data)
+    save_interval = unpack_parameter(18, data)
+    return size, length_scale, dmu, z_I, z_B, t_max, save_interval
 
 
 def read_data(file_name):
     file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/states.txt", "r")
     data = file.readlines()
+    file.close()
     data = [line.split("\n")[0].split("\t") for line in data]
     data = [[float(element) for element in line] for line in data]
     return np.array(data)
 
-def average(data, length_scale, file_name):
-    size, _, _, _, _, _ = read_parameters(file_name)
+def average(data, file_name):
+    size, length_scale, _, _, _, _, _ = read_parameters(file_name)
+    length_scale = int(length_scale)
     if size[0] % length_scale != 0 or size[1] % length_scale != 0:
         raise ValueError("length_scale must be a divisor of the lattice size")
     kernel = np.ones((length_scale, length_scale)) / (length_scale ** 2)
     data = convolve2d(data, kernel, mode='valid')
-    return data[::length_scale,::length_scale]
+    return np.around(data[::length_scale,::length_scale], decimals=5)
 
 
-size, dmu, z_I, z_B, t_max, save_interval = read_parameters(file_name)
+size, length_scale, dmu, z_I, z_B, t_max, save_interval = read_parameters(file_name)
+length_scale = int(length_scale)
 data = read_data(file_name)
 B_data = np.where(data == 1, 1, 0)
 I_data = np.where(data == 2, 1, 0)
 if length_scale != 1:
-    B_data = average(B_data, length_scale, file_name)
-    I_data = average(I_data, length_scale, file_name)
+    B_data = average(B_data, file_name)
+    I_data = average(I_data, file_name)
 
 times = np.arange(0, t_max, save_interval)
 
@@ -79,7 +82,7 @@ def update(i):
                 alpha = alpha_I)
     
     ax.set_axis_off()
-    ax.set_title(f"time = {np.round(times[i], decimals = 2)}")
+    ax.set_title(f"time = {np.round(times[i], decimals = 2)}s")
 
 
 ani = animation.FuncAnimation(fig, update, len(times))

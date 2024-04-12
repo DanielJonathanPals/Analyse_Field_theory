@@ -29,7 +29,7 @@ function run_simulation(array_ID::Int64)
     # Initialize the arrays to store the data
     times = collect(0:simulation_params["dt"]:simulation_params["t_max"])
     save_times = collect(0:simulation_params["save_interval"]:simulation_params["t_max"])
-    numb_snapshots = length(save_times)
+    numb_snapshots::Int64 = length(save_times)
     B_states = Matrix{Float64}(undef, (x_size * numb_snapshots, y_size))
     I_states = Matrix{Float64}(undef, (x_size * numb_snapshots, y_size))
     B_ratios = Vector{Float64}(undef, numb_snapshots)

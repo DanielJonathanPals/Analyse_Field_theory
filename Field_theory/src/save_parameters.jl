@@ -1,6 +1,6 @@
 using DelimitedFiles
 
-function save_parameters(lattice_params, model_params, simulation_params, name)
+function save_parameters(lattice_params::Dict, model_params::Dict, simulation_params::Dict, name::String)
     println(name)
     isdir("Data") || mkdir("Data")
     isdir("Data/" * name) || mkdir("Data/" * name)
