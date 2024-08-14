@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.signal import convolve2d
 
-file_name = 'original_model1_zI_01_zB_0426_xsize_320_ysize_320'
+file_name = 'eps_-2p95_f_res_2p9_rho_v_0p05_xsize_256_ysize_512'
+run_id = 1
 
 def unpack_parameter(line_idx, data):
     line = data[line_idx].split("\n")[0]
@@ -19,7 +20,7 @@ def unpack_parameter(line_idx, data):
     
 
 def read_parameters(file_name):
-    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/lattice_params.txt", "r")
+    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/{run_id}/lattice_params.txt", "r")
     data = file.readlines()
     file.close()
     size = unpack_parameter(1, data)
@@ -27,13 +28,15 @@ def read_parameters(file_name):
     dmu = unpack_parameter(10, data)
     z_I = unpack_parameter(11, data)
     z_B = unpack_parameter(12, data)
-    t_max = unpack_parameter(16, data)
-    save_interval = unpack_parameter(18, data)
+    f_res = unpack_parameter(13, data)
+    rho_v = unpack_parameter(14, data)
+    t_max = unpack_parameter(18, data)
+    save_interval = unpack_parameter(20, data)
     return size, length_scale, dmu, z_I, z_B, t_max, save_interval
 
 
 def read_data(file_name):
-    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/states.txt", "r")
+    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/{run_id}/states.txt", "r")
     data = file.readlines()
     file.close()
     data = [line.split("\n")[0].split("\t") for line in data]
@@ -86,4 +89,6 @@ def update(i):
 
 
 ani = animation.FuncAnimation(fig, update, len(times))
-ani.save(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Animations/{file_name}.mp4", writer='imagemagick', fps=20)
+#ani.save(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Animations/imagemagick.mp4", writer='imagemagick', fps=20)
+FFwriter = animation.FFMpegWriter(fps=20)
+ani.save(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Animations/{file_name}.mp4", writer=FFwriter)

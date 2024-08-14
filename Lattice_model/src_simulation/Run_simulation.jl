@@ -10,12 +10,12 @@ function run_simulation(array_ID)
     # Unpack the arguments
     lattice_params, model_params, simulation_params = unpack_ARGS(array_ID)
     k = trans_rates(model_params)
-    name = create_name(model_params["z_I"], model_params["z_B"], lattice_params["lattice_size"][1], lattice_params["lattice_size"][2])
+    name = create_name(model_params["epsilon"], model_params["f_res"], model_params["rho_v"], lattice_params["lattice_size"][1], lattice_params["lattice_size"][2])
     x_size = lattice_params["lattice_size"][1]
     y_size = lattice_params["lattice_size"][2]
 
     # Save the parameters
-    save_parameters(lattice_params, model_params, simulation_params, name)
+    run_id = save_parameters(lattice_params, model_params, simulation_params, name)
 
     # Initialize the lattice
     l = lattice(lattice_size=lattice_params["lattice_size"], 
@@ -80,13 +80,12 @@ function run_simulation(array_ID)
 
         # Break if the simulation is finished
         if t > simulation_params["t_max"] 
-            println("Simulation finished at t = $t since the maximum number of transitions was reached.")
             break
         end
     end
 
     # Save the data
-    open("Data/" * name * "/states.txt", "w") do io
+    open("Data/" * name * "/" * run_id * "/states.txt", "w") do io
         writedlm(io, states)
     end
 end
