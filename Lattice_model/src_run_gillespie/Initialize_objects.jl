@@ -3,7 +3,6 @@ include("Heap.jl")
 
 # Initialize nodes.
 function init_nodes(l::lattice, k::trans_rates)
-    handles = []
     handles = collect(1:length(l.state) * 3)
 
     nodes = Vector{MutableBinaryHeapNode}(undef, length(handles))

@@ -96,6 +96,26 @@ function neighbours(l::lattice, i::Int64, j::Int64)
 end
 
 
+# returns the number of B-neighbours of the lattice site at row i, column j
+function B_neighbours_count(l::lattice, i::Int64, j::Int64)
+    count = 0
+    # for some reason not using a for loop allocates less memory
+    if l(i,j-1) == 1
+        count += 1
+    end
+    if l(i,j+1) == 1
+        count += 1
+    end
+    if l(i-1,j) == 1
+        count += 1
+    end
+    if l(i+1,j) == 1
+        count += 1
+    end
+    return count
+end
+
+
 # returns true if the lattice site at row i, column j has a neighbour in the specified direction and returns the coordinates of that neighbour
 function has_neighbour(l::lattice, i::Int64, j::Int64, rel_pos::String = "above")
     if rel_pos == "above"

@@ -1,3 +1,5 @@
+using StaticArrays
+
 include("lattice.jl")
 
 
@@ -32,58 +34,67 @@ end
 
 
 # Contains all transition rates as functions of the local potential u
-mutable struct trans_rates
-    BI::Function
-    IB::Function
-    BE::Function
-    EB::Function
-    IE::Function
-    EI::Function
+struct trans_rates
+    BI::SVector{5, Float64}
+    IB::SVector{5, Float64}
+    BE::SVector{5, Float64}
+    EB::SVector{5, Float64}
+    IE::SVector{5, Float64}
+    EI::SVector{5, Float64}
 end
 
 
 function trans_rates(args)
-    df = log(args["z_I"]/args["z_B"])
-    Δμ = args["dμ"]
-    D = args["D"]
-    z_B = args["z_B"]
-    z_I = args["z_I"]
+    df = log(args.z_I/args.z_B)
+    Δμ = args.dμ
+    D = args.D
+    z_B = args.z_B
+    z_I = args.z_I
+    epsilon = args.epsilon
 
-    k_IB(u) = D * args["k_IB"](df, Δμ, u)
-    k_BI(u) = k_IB(u) * exp(df + Δμ + u)
-    k_BE(u) = D * exp(u)
-    k_EB(u) = D * z_B
-    k_IE(u) = D
-    k_EI(u) = D * z_I
+    k_IB(n) = D * args.k_IB(df, Δμ, n * epsilon)
+    k_BI(n) = k_IB(n) * exp(df + Δμ + n * epsilon)
+    k_BE(n) = D * exp(n * epsilon)
+    k_EB(n) = D * z_B
+    k_IE(n) = D
+    k_EI(n) = D * z_I
 
-    return trans_rates(k_BI, k_IB, k_BE, k_EB, k_IE, k_EI)
+    k_IB_arr = @SVector [k_IB(0), k_IB(1), k_IB(2), k_IB(3), k_IB(4)]
+    k_BI_arr = @SVector [k_BI(0), k_BI(1), k_BI(2), k_BI(3), k_BI(4)]
+    k_BE_arr = @SVector [k_BE(0), k_BE(1), k_BE(2), k_BE(3), k_BE(4)]
+    k_EB_arr = @SVector [k_EB(0), k_EB(1), k_EB(2), k_EB(3), k_EB(4)]
+    k_IE_arr = @SVector [k_IE(0), k_IE(1), k_IE(2), k_IE(3), k_IE(4)]
+    k_EI_arr = @SVector [k_EI(0), k_EI(1), k_EI(2), k_EI(3), k_EI(4)]
+
+    return trans_rates(k_BI_arr, k_IB_arr, k_BE_arr, k_EB_arr, k_IE_arr, k_EI_arr)
 end
 
 # returns the transition rate corresponding to the action `a` for the lattice `l`
 function get_trans_rate(a::action, l::lattice, k::trans_rates)
+
     old_state = l(a.x_coord, a.y_coord)
-    u = loc_energy(l, a.x_coord, a.y_coord)
+    B_neighbours = B_neighbours_count(l, a.x_coord, a.y_coord)
     if old_state == 0
         if a.new_state == 1
-            return k.EB(u)
+            return k.EB[B_neighbours+1]
         elseif a.new_state == 2
-            return k.EI(u)
+            return k.EI[B_neighbours+1]
         elseif a.new_state == 0
             return 0.0
         end
     elseif old_state == 1
         if a.new_state == 2
-            return k.BI(u)
+            return k.BI[B_neighbours+1]
         elseif a.new_state == 0
-            return k.BE(u)
+            return k.BE[B_neighbours+1]
         elseif a.new_state == 1
             return 0.0
         end
     elseif old_state == 2
         if a.new_state == 1
-            return k.IB(u)
+            return k.IB[B_neighbours+1]
         elseif a.new_state == 0
-            return k.IE(u)
+            return k.IE[B_neighbours+1]
         elseif a.new_state == 2
             return 0.0
         end

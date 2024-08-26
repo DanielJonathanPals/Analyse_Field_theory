@@ -1,28 +1,28 @@
 include("read_in_data.jl")
-using Plots
 using FFTW
 
-function analyze_column(column::Vector{Int8}, rounded_interface_pos::Vector{Int})
-    local_pos = zeros(Int, 2)
+rounded_interface_positions = zeros(Int64, 2)
+
+function analyze_column!(interface_profile::Matrix{Float64}, column::Vector{Int8}, rounded_interface_pos::Vector{Int}, column_idx::Int)
 
     if (column[rounded_interface_pos[1]] == 1) & (column[rounded_interface_pos[1] + 1] == 1)
         for j in 1:(rounded_interface_pos[1] - 1)
             if column[rounded_interface_pos[1] - j] != 1
-                local_pos[1] = j
+                interface_profile[1, column_idx] = j
                 break
             end
             if j == rounded_interface_pos[1] - 1
-                local_pos[1] = j
+                interface_profile[1, column_idx] = j
             end
         end
     elseif (column[rounded_interface_pos[1]] != 1) & (column[rounded_interface_pos[1] + 1] != 1)
         for j in 1:(length(column) - rounded_interface_pos[1] - 1)
             if column[rounded_interface_pos[1] + 1 + j] == 1
-                local_pos[1] = -j
+                interface_profile[1, column_idx] = -j
                 break
             end
             if j == length(column) - rounded_interface_pos[1] - 1
-                local_pos[1] = -j
+                interface_profile[1, column_idx] = -j
             end
         end
     end
@@ -30,79 +30,75 @@ function analyze_column(column::Vector{Int8}, rounded_interface_pos::Vector{Int}
     if (column[rounded_interface_pos[2]] == 1) & (column[rounded_interface_pos[2] + 1] == 1)
         for j in 1:(length(column) - rounded_interface_pos[1] - 1)
             if column[rounded_interface_pos[2] + 1 + j] != 1
-                local_pos[2] = j
+                interface_profile[2, column_idx] = j
                 break
             end
             if j == length(column) - rounded_interface_pos[2] - 1
-                local_pos[2] = j
+                interface_profile[2, column_idx] = j
             end
         end
     elseif (column[rounded_interface_pos[2]] != 1) & (column[rounded_interface_pos[2] + 1] != 1)
         for j in 1:(rounded_interface_pos[2] - 1)
             if column[rounded_interface_pos[2] - j] == 1
-                local_pos[2] = -j
+                interface_profile[2, column_idx] = -j
                 break
             end
             if j == rounded_interface_pos[2] - 1
-                local_pos[2] = -j
+                interface_profile[2, column_idx] = -j
             end
         end
     end
-    return local_pos
 end
 
-function get_interface_profiles(data::Matrix{Int8}, x_size::Int, y_size::Int, numb_of_snapshot::Int, interface_positions::Vector{Float64})
-    interface_profiles = zeros(Float64, 2, y_size)
-    rounded_interface_positions = Int.(round.(interface_positions))
-
+function get_interface_profiles!(interface_positions::Matrix{Float64}, interface_profile::Matrix{Float64}, state::Matrix{Int8}, idx::Int64)
+    rounded_interface_positions .= Int.(round.(interface_positions[:, idx]))
+    y_size = size(state, 2)
     for i in 1:y_size
-        column = data[(numb_of_snapshot - 1) * x_size + 1:numb_of_snapshot * x_size, i]
-        interface_profiles[:, i] = analyze_column(column, rounded_interface_positions)
+        analyze_column!(interface_profile, state[:,i], rounded_interface_positions, i)
     end
-    new_interface_pos = rounded_interface_positions + (reshape(sum(interface_profiles, dims = 2), 2) ./ y_size)
-    return interface_profiles, new_interface_pos
+    interface_positions[:, idx+1] .= rounded_interface_positions .+ (reshape(sum(interface_profile, dims = 2), 2) ./ y_size) .* [-1,1]
 end
 
-function run_analysis(file_name::String, run_id::Int)
-    data, x_size, y_size, epsilon, dμ, f_res, rho_v, t_max, save_interval, numb_of_snapshots = read_data(file_name, run_id)
-
-    interface_positions_init = [x_size / 4, 3 * x_size / 4]
-    interface_positions = interface_positions_init
-
-    fourier1 = zeros(Complex, numb_of_snapshots, y_size)
-    fourier2 = zeros(Complex, numb_of_snapshots, y_size)
-    save_interface_pos1 = zeros(Float64, numb_of_snapshots)
-    save_interface_pos2 = zeros(Float64, numb_of_snapshots)
-
-    for i in 1:numb_of_snapshots
-        interface_profiles, new_interface_pos = get_interface_profiles(data, x_size, y_size, i, interface_positions)
-        interface_positions = new_interface_pos
-        save_interface_pos1[i] = interface_positions[1] - interface_positions_init[1]
-        save_interface_pos2[i] = interface_positions[2] - interface_positions_init[2]
-        fourier1[i, :] = fft(interface_profiles[1, :])
-        fourier2[i, :] = fft(interface_profiles[2, :])
-    end
-
-    open("Data/" * file_name * "/" * string(run_id) * "/fourier_data_upper_boundary.txt", "w") do io
-        writedlm(io, fourier1)
-    end
-
-    open("Data/" * file_name * "/" * string(run_id) * "/fourier_data_lower_boundary.txt", "w") do io
-        writedlm(io, fourier2)
-    end
-
-    open("Data/" * file_name * "/" * string(run_id) * "/interface_pos_upper_boundary.txt", "w") do io
-        writedlm(io, save_interface_pos1)
-    end
-
-    open("Data/" * file_name * "/" * string(run_id) * "/interface_pos_lower_boundary.txt", "w") do io
-        writedlm(io, save_interface_pos2)
-    end
+function fft_and_interface_pos!(fourier_arr::Matrix{Complex}, interface_positions::Matrix{Float64}, interface_profile::Matrix{Float64}, state::Matrix{Int8}, idx::Int64)
+    get_interface_profiles!(interface_positions, interface_profile, state, idx)
+    y_size = size(state, 2)
+    fourier_arr[1, :] .= fft(interface_profile[1, :]) ./ √(y_size)
+    fourier_arr[2, :] .= fft(interface_profile[2, :]) ./ √(y_size)
 end
 
-function run_analysis(file_name::String)
-    files = readdir("Data/" * file_name)
-    for file in files
-        run_analysis(file_name, ToInt64(file))
+
+function expectation_hq2(file_name::String)
+    files = read_dir("Data/" * file_name)
+
+    # Test if all parameters in the files are the same
+    x_size = zeros(Int, length(files))
+    y_size = zeros(Int, length(files))
+    epsilon = zeros(length(files))
+    dμ = zeros(length(files))
+    f_res = zeros(length(files))
+    rho_v = zeros(length(files))
+    t_max = zeros(length(files))
+    save_interval = zeros(length(files))
+    numb_of_snapshots = zeros(Int, length(files))
+    for (i,file) in enumerate(files)
+        x_size[i], y_size[i], epsilon[i], dμ[i], f_res[i], rho_v[i], t_max[i], save_interval[i], numb_of_snapshots[i] = read_params(file_name, ToInt64(file))
+    end
+    if !all(x_size .== x_size[1]) || !all(y_size .== y_size[1]) || !all(epsilon .== epsilon[1]) || !all(dμ .== dμ[1]) || !all(f_res .== f_res[1]) || !all(rho_v .== rho_v[1]) || !all(t_max .== t_max[1]) || !all(save_interval .== save_interval[1]) || !all(numb_of_snapshots .== numb_of_snapshots[1])
+        throw(ErrorException("Not all parameters are the same in $file_name"))
+        return nothing
+    end
+
+    all_fft_results = zeros(Float64, numb_of_snapshots[1], y_size[1], 4*length(files))
+    for (i,file) in enumerate(files)
+        all_fft_results[:, :, 4*i-3] = readdlm("Data/$file_name/$file/fourier_data_upper_boundary_real.txt", '\t', Float64, '\n')
+        all_fft_results[:, :, 4*i-2] = readdlm("Data/$file_name/$file/fourier_data_upper_boundary_imag.txt", '\t', Float64, '\n')
+        all_fft_results[:, :, 4*i-1] = readdlm("Data/$file_name/$file/fourier_data_lower_boundary_real.txt", '\t', Float64, '\n')
+        all_fft_results[:, :, 4*i] = readdlm("Data/$file_name/$file/fourier_data_lower_boundary_imag.txt", '\t', Float64, '\n')
+    end
+    all_fft_results .= all_fft_results .^2
+    average_hq2 = reshape(sum(all_fft_results, dims = 3), numb_of_snapshots[1], y_size[1]) ./ (2*length(files))
+
+    open("Data/" * file_name * "/expectation_hq2.txt", "w") do io
+        writedlm(io, average_hq2)
     end
 end
