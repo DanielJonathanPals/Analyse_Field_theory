@@ -42,9 +42,11 @@ function run_simulation(array_ID)
     interface_profiles = zeros(Float64, 2, y_size)          # Dummy array for the interface profiles
 
     # set up file for saving the data
-    file_name = "/scratch-local/Daniel.Pals/" * name * "_simulation_No_" * string(run_id)
+    dirname = "/scratch-local/Daniel.Pals"
+    isdir(dirname) || mkdir(dirname)
+    file_name = dirname * "/" * name * "_simulation_No_" * string(run_id)
     
-    file = h5open(file_name, "cw")
+    file = h5open(file_name, "w")
 
     create_group(file, "States")
     create_group(file, "Fourier_Data")
@@ -116,5 +118,6 @@ function run_simulation(array_ID)
     close(file)
 
     mv(file_name, "Data/" * name * "/simulation_No_" * string(run_id), force=true)
+    println(readdir(dirname))
 
 end

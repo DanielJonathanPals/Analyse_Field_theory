@@ -2,8 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.signal import convolve2d
+import h5py
 
-file_name = 'eps_-2p95_f_res_2p24_rho_v_0p05_dmu_-1p0_xsize_256_ysize_512'
+
+file_name = 'epsilon_-2p95_rho_v_0p3_dmu_0p0'
 run_id = 1
 
 def unpack_parameter(line_idx, data):
@@ -19,8 +21,8 @@ def unpack_parameter(line_idx, data):
         return float(data)
     
 
-def read_parameters(file_name, run_id):
-    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/{run_id}/lattice_params.txt", "r")
+def read_parameters(file_name):
+    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/lattice_params.txt", "r")
     data = file.readlines()
     file.close()
     size = unpack_parameter(1, data)
@@ -35,42 +37,35 @@ def read_parameters(file_name, run_id):
     return size, epsilon, dmu, z_I, z_B, f_res, rho_v, t_max, save_interval
 
 
-def read_data(file_name, run_id):
-    file = open(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/{run_id}/states.txt", "r")
-    data = file.readlines()
-    file.close()
-    data = [line.split("\n")[0].split("\t") for line in data]
-    data = [[float(element) for element in line] for line in data]
-    return np.array(data)
-
-
 if __name__ == '__main__':
-    size, epsilon, dmu, z_I, z_B, f_res, rho_v, t_max, save_interval = read_parameters(file_name, run_id)
-    data = read_data(file_name, run_id)
-    B_data = np.where(data == 1, 1, 0)
-    I_data = np.where(data == 2, 1, 0)
+    size, epsilon, dmu, z_I, z_B, f_res, rho_v, t_max, save_interval = read_parameters(file_name)
 
     times = np.arange(0, t_max, save_interval)
 
 
+
     fig, ax = plt.subplots()
 
+    data = []
     def update(i):
         ax.clear()
-        alpha_B = B_data[i*int(size[0]):(i+1)*int(size[0]),:].astype(np.float64)
-        alpha_I = I_data[i*int(size[0]):(i+1)*int(size[0]),:].astype(np.float64)
+        with h5py.File(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/simulation_No_{run_id}", "r") as f:
+            data = np.array(f[f"States/{i+1}"])
+        
+        B_data = np.where(data == 1, 1, 0).astype(np.float64)
+        I_data = np.where(data == 2, 1, 0).astype(np.float64)
         
         ax.imshow(np.ones((int(size[0]), int(size[1]))), 
                     cmap='Reds', 
                     vmin=0,
                     vmax=1.2,
-                    alpha = alpha_B)
+                    alpha = np.transpose(B_data))
         
         ax.imshow(np.ones((int(size[0]), int(size[1]))), 
                     cmap='Blues', 
                     vmin=0,
                     vmax=1.2,
-                    alpha = alpha_I)
+                    alpha = np.transpose(I_data))
         
         ax.set_axis_off()
         ax.set_title(f"time = {np.round(times[i], decimals = 2)}s")

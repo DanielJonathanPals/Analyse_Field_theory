@@ -6,12 +6,12 @@ import scipy.integrate as integrate
 if __name__ == '__main__':
     # General setup and defining coeffs
 
-    epsilon = -2.95
+    epsilon = -2.
     rho_v = 0.05
     dmu = np.linspace(-2,2,30)
     order = 4       # This neglects terms of order dmu^(order + 2)
 
-    f_res_init_guess = 3
+    f_res_init_guess = 0.5
 
     
 

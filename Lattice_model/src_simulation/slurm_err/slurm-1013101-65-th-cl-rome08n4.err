@@ -1,0 +1,97 @@
+┌ Warning: Module Compat with build ID fafbfcfd-1aab-c30e-0000-dd33480a232c is missing from the cache.
+│ This may mean Compat [34da2185-b29b-5c13-b0c7-acf172513d20] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:1948
+error in running finalizer: Base.IOError(msg="stat(RawFD(16)): Unknown system error -116 (Unknown system error -116)", code=-116)
+uv_error at ./libuv.jl:100 [inlined]
+stat at ./stat.jl:152
+stat at ./filesystem.jl:281 [inlined]
+close at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/usr/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:336
+jfptr_close_50933.1 at /software/opt/el_9/x86_64/julia/1.10.3/lib/julia/sys.so (unknown line)
+_jl_invoke at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gf.c:3077
+run_finalizer at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gc.c:318
+jl_gc_run_finalizers_in_list at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gc.c:408
+run_finalizers at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gc.c:454
+ijl_atexit_hook at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/init.c:299
+ijl_exit at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/init.c:207
+exit at ./initdefs.jl:28 [inlined]
+exec_options at ./client.jl:323
+_start at ./client.jl:552
+jfptr__start_82726.1 at /software/opt/el_9/x86_64/julia/1.10.3/lib/julia/sys.so (unknown line)
+_jl_invoke at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/gf.c:3077
+jl_apply at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/julia.h:1982 [inlined]
+true_main at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/jlapi.c:582
+jl_repl_entrypoint at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/jlapi.c:731
+main at julia (unknown line)
+__libc_start_call_main at /lib64/libc.so.6 (unknown line)
+__libc_start_main at /lib64/libc.so.6 (unknown line)
+unknown function (ip: 0x4010b8)
+  Activating project at `/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory`
+  Activating project at `/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model`
+Error in Timer:
+SystemError: futimes: Stale file handle
+Stacktrace:
+ [1] systemerror(p::Symbol, errno::Int32; extrainfo::Nothing)
+   @ ERROR: LoadError: IOError: stat(RawFD(16)): Unknown system error -116 (Unknown system error -116)
+Stacktrace:
+  [1] uv_error
+    @ ./libuv.jl:100 [inlined]
+  [2] stat(fd::RawFD)
+    @ Base.Filesystem ./stat.jl:152
+  [3] stat
+    @ ./filesystem.jl:281 [inlined]
+  [4] close(lock::FileWatching.Pidfile.LockMonitor)
+    @ FileWatching.Pidfile /software/opt/el_9/x86_64/julia/1.10.3/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:336
+  [5] mkpidlock(f::Base.var"#968#969"{Base.PkgId}, at::String, pid::Int32; kwopts::@Kwargs{stale_age::Int64, wait::Bool})
+    @ FileWatching.Pidfile /software/opt/el_9/x86_64/julia/1.10.3/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:95
+  [6] #mkpidlock#6
+    @ /software/opt/el_9/x86_64/julia/1.10.3/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:88 [inlined]
+  [7] trymkpidlock(::Function, ::Vararg{Any}; kwargs::@Kwargs{stale_age::Int64})
+    @ FileWatching.Pidfile /software/opt/el_9/x86_64/julia/1.10.3/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:111
+  [8] #invokelatest#2
+    @ ./essentials.jl:894 [inlined]
+  [9] invokelatest
+    @ ./essentials.jl:889 [inlined]
+ [10] maybe_cachefile_lock(f::Base.var"#968#969"{Base.PkgId}, pkg::Base.PkgId, srcpath::String; stale_age::Int64)
+    @ Base ./loading.jl:2983
+ [11] maybe_cachefile_lock
+    @ ./loading.jl:2980 [inlined]
+ [12] _require(pkg::Base.PkgId, env::String)
+    @ Base ./loading.jl:1970
+ [13] __require_prelocked(uuidkey::Base.PkgId, env::String)
+    @ Base ./loading.jl:1812
+ [14] #invoke_in_world#3
+    @ ./essentials.jl:926 [inlined]
+ [15] invoke_in_world
+    @ ./essentials.jl:923 [inlined]
+ [16] _require_prelocked(uuidkey::Base.PkgId, env::String)
+    @ Base ./loading.jl:1803
+ [17] macro expansion
+    @ ./loading.jl:1790 [inlined]
+ [18] macro expansion
+    @ ./lock.jl:267 [inlined]
+ [19] __require(into::Module, mod::Symbol)
+    @ Base ./loading.jl:1753
+ [20] #invoke_in_world#3
+    @ ./essentials.jl:926 [inlined]
+ [21] invoke_in_world
+    @ ./essentials.jl:923 [inlined]
+ [22] require(into::Module, mod::Symbol)
+    @ Base ./loading.jl:1746
+ [23] include(fname::String)
+    @ Base.MainInclude ./client.jl:489
+ [24] top-level scope
+    @ /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/actions.jl:3
+ [25] include(fname::String)
+    @ Base.MainInclude ./client.jl:489
+ [26] top-level scope
+    @ /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/Run_simulation.jl:4
+ [27] include(fname::String)
+    @ Base.MainInclude ./client.jl:489
+ [28] top-level scope
+    @ /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/run_on_cluster.jl:4
+in expression starting at /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/lattice.jl:6
+in expression starting at /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/actions.jl:3
+in expression starting at /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/Run_simulation.jl:4
+in expression starting at /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_run_gillespie/run_on_cluster.jl:4
