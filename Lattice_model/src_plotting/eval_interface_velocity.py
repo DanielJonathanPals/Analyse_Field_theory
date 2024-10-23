@@ -4,8 +4,11 @@ import os
 from create_anim import *
 from Interface_dynamics import *
 
-file_name = 'epsilon_-2p95_rho_v_0p3_dmu_0p0'
-trans_time = 2000.0
+file_name = 'epsilon_-2p95_rho_v_0p05_dmu_1p0_long'
+trans_time = 0.
+order = 5
+k_IB = lambda u, f_res, dmu: k_IB_model1(u, f_res, dmu)
+f_res_init_guess = 4.
 
 path = f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}"
 
@@ -18,18 +21,10 @@ L = size[1]
 t = np.arange(0, t_max + save_interval, save_interval)
 time_steps = len(t)
 
-# Since it takes some time to compute nosie_amp_2 it will be saved in a txt file
-if not os.path.isdir(f"{path}/theory_vals"):
-    os.mkdir(f"{path}/theory_vals")
-if os.path.isfile(f"{path}/theory_vals/noise_amp_2.txt"):
-    file = open(f"{path}/theory_vals/noise_amp_2.txt", "r")
-    noise_amp_2 = file.readlines()
-    file.close()
-    noise_amp_2 = float(noise_amp_2[0])
-else:
-    noise_amp_2 = noise_amp_squared(epsilon, rho_v, f_res, k_IB, dk_IB_du, dmu)
-    with open(f"{path}/theory_vals/noise_amp_2.txt", "w") as file:
-        file.write(str(noise_amp_2))
+eta, sigma, chi2, _ = get_eta_sigma_chi2(epsilon, rho_v, k_IB, dmu, f_res_init_guess, order)
+eta = eta[-1]
+sigma = sigma[-1]
+chi2 = chi2[-1]
 
 trans_time_steps = np.round(trans_time / save_interval).astype(int)
 trans_time = trans_time_steps * save_interval
@@ -39,7 +34,7 @@ def read_interface_pos(run_id):
     data = []
     with h5py.File(f"{path}/simulation_No_{run_id}", "r") as f:
         data = np.array(f["Interface_position/positions"])
-    return np.reshape(data[:,0], time_steps), np.reshape(data[:,1], time_steps)
+    return np.reshape(data[:,0], time_steps), -np.reshape(data[:,1], time_steps)
 
 interface_pos = np.zeros((2 * numb_of_simulations, time_steps))
 
@@ -60,12 +55,23 @@ plt.plot(t, np.mean(interface_pos, axis=0) + np.std(interface_pos, axis=0), colo
 plt.plot(t, np.mean(interface_pos, axis=0) - np.std(interface_pos, axis=0), color='blue', lw=1., ls= '--')
 plt.fill_between(t, np.mean(interface_pos, axis=0) - np.std(interface_pos, axis=0), np.mean(interface_pos, axis=0) + np.std(interface_pos, axis=0), color='blue', alpha=0.2)
 
-plt.plot(t, np.sqrt(noise_amp_2 * (t - trans_time) / L), color='red', lw=1., ls= '--')
-plt.plot(t, -np.sqrt(noise_amp_2 * (t - trans_time) / L), color='red', lw=1., ls= '--')
+plt.plot(t, np.sqrt(chi2/(eta**2) * (t - trans_time) / L), color='red', lw=1., ls= '--')
+plt.plot(t, -np.sqrt(chi2/(eta**2) * (t - trans_time) / L), color='red', lw=1., ls= '--')
 plt.plot(t, np.zeros(len(t)), color='red', lw=1.)
 plt.xlabel('t')
 plt.ylabel('Interface position')
-
+plt.title(f"Interface velocity, epsilon = {epsilon}, rho_v = {rho_v}, dmu = {dmu}")
 
 plt.grid()
-plt.savefig("plot.pdf")
+
+n_measured = (np.std(interface_pos, axis=0)[10:])**2 / (t[10:]- trans_time)
+n_meas = np.mean(n_measured)
+print(chi2/(eta**2))
+print(n_meas * L)
+print(n_meas * L / (chi2/(eta**2)))
+
+plt.savefig("interface_velocity.pdf")
+
+plt.figure()
+plt.plot(t[10:]- trans_time, n_measured, color='black')
+plt.savefig("noise_amp_squared_from_interface_velocity.pdf")

@@ -1,4 +1,5 @@
 import Pkg
+#Pkg.instantiate()
 Pkg.activate("../")
 
 include("Run_simulation.jl")

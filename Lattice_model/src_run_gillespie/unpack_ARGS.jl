@@ -70,11 +70,11 @@ function unpack_ARGS(array_ID)
     epsilon, rho_v, dμ, t_max, save_interval, _, f_res, names = read_params()
 
     x_size = 256
-    y_size = 512
+    y_size = 64
     s = (x_size, y_size)
     l_init = zeros(Int8, s)
     l_init[x_size ÷ 4 + 1 : 3 * x_size ÷ 4, :] .= 1
-    lattice_params = lattice_prms(s, l_init, "empty", "empty", "periodic", "periodic")
+    lattice_params = lattice_prms(s, l_init, "periodic", "periodic", "periodic", "periodic")
 
     z_I = rho_v[param_ID] / (1 - rho_v[param_ID]) * exp(f_res[param_ID]) / (1 + exp(f_res[param_ID]))
     z_B = rho_v[param_ID] / (1 - rho_v[param_ID]) / (1 + exp(f_res[param_ID]))

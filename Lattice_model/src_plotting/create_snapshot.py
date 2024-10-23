@@ -5,7 +5,7 @@ from scipy.signal import convolve2d
 import h5py
 
 
-file_name = 'epsilon_-2p95_rho_v_0p05_dmu_1p0_long'
+file_name = 'epsilon_-2p95_rho_v_0p05_dmu_-1p0'
 run_id = 1
 
 def unpack_parameter(line_idx, data):
@@ -45,33 +45,26 @@ if __name__ == '__main__':
 
 
     fig, ax = plt.subplots()
+    i = 2
 
-    data = []
-    def update(i):
-        ax.clear()
-        with h5py.File(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/simulation_No_{run_id}", "r") as f:
-            data = np.array(f[f"States/{i+1}"])
-        
-        B_data = np.where(data == 1, 1, 0).astype(np.float64)
-        I_data = np.where(data == 2, 1, 0).astype(np.float64)
-        
-        ax.imshow(np.ones((int(size[0]), int(size[1]))), 
-                    cmap='Reds', 
-                    vmin=0,
-                    vmax=1.2,
-                    alpha = np.transpose(B_data))
-        
-        ax.imshow(np.ones((int(size[0]), int(size[1]))), 
-                    cmap='Blues', 
-                    vmin=0,
-                    vmax=1.2,
-                    alpha = np.transpose(I_data))
-        
-        ax.set_axis_off()
-        ax.set_title(f"time = {np.round(times[i], decimals = 2)}s")
-
-
-    ani = animation.FuncAnimation(fig, update, len(times))
-    #ani.save(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Animations/imagemagick.mp4", writer='imagemagick', fps=20)
-    FFwriter = animation.FFMpegWriter(fps=20)
-    ani.save(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Animations/{file_name}.mp4", writer=FFwriter)
+    with h5py.File(f"/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/{file_name}/simulation_No_{run_id}", "r") as f:
+        data = np.array(f[f"States/{i+1}"])
+    
+    B_data = np.where(data == 1, 1, 0).astype(np.float64)
+    I_data = np.where(data == 2, 1, 0).astype(np.float64)
+    
+    ax.imshow(np.ones((int(size[0]), int(size[1]))), 
+                cmap='Reds', 
+                vmin=0,
+                vmax=1.2,
+                alpha = np.transpose(B_data))
+    
+    ax.imshow(np.ones((int(size[0]), int(size[1]))), 
+                cmap='Blues', 
+                vmin=0,
+                vmax=1.2,
+                alpha = np.transpose(I_data))
+    
+    ax.set_axis_off()
+    ax.set_title(f"time = {np.round(times[i])}s")
+    fig.savefig(f"snapshot_{i}.pdf")

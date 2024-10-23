@@ -23,7 +23,7 @@ module load python/3.7.4
 /bin/python3 /scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_parameter_processing/process_params.py
 module unload python
 
-module load julia/1.10.3
+module load julia/1.11.0
 julia src_parameter_processing/Save_parameters.jl
 module unload julia
 

@@ -2,4 +2,9 @@ Field_theory/Data
 Field_theory/Animations
 Lattice_model/Data
 Lattice_model/Animations
+Lattice_model/src_simulation/slurm_err
+Lattice_model/src_simulation/slurm_out
 *.mem
+*.txt
+*.pdf
+*.npy

@@ -45,11 +45,22 @@ def compute_numeric_f_res_coex(order, rho_v, k_IB, dmu, epsilon, f_res_init_gues
     term2 = lambda f_res: integrate.quad(lambda nB: np.log(1 + ((np.exp(dmu) - 1) * zI(f_res) * k(nB, f_res)) / (zB(f_res) + zI(f_res) * k(nB, f_res) + zB(f_res) * k(nB, f_res)) * (1 + zI(f_res) + zB(f_res)) / (1 + zI(f_res))), n_Bm(f_res), n_Bp(f_res))[0]
     return fsolve(lambda f_res: term1(n_Bp(f_res), f_res) - term1(n_Bm(f_res), f_res) - 1/epsilon * term2(f_res), f_res_init_guess)[0]
 
+# For FLEX
+def p_tilde_B(n_B, rho_v, f_res, k_IB, dmu, epsilon):
+    u = 4 * epsilon * n_B
+    K_IB = k_IB(u, f_res, dmu)
+    K_BI = K_IB * np.exp(f_res + dmu + u)
+    zB = z_B(rho_v, f_res)
+    zI = z_I(rho_v, f_res)
+    return (zB + K_IB * (zI + zB)) / (np.exp(u) * (1 + K_IB + zI) + (K_BI + K_IB) * (zI + zB) + K_BI + zB)
 
+def f_res_flex(rho_v, k_IB, dmu, epsilon, f_res_init_guess):
+    return fsolve(lambda f_res: p_tilde_B(0.5, rho_v, f_res, k_IB, dmu, epsilon) - 0.5, f_res_init_guess)[0]
     
 
+
 def create_name(epsilon, rho_v, dmu):
-    return 'epsilon_' + str(np.round(epsilon, decimals=3)).replace(".","p") + '_rho_v_' + str(np.round(rho_v, decimals=3)).replace(".","p") + '_dmu_' + str(np.round(dmu, decimals=3)).replace(".","p")
+    return 'epsilon_' + str(np.round(epsilon, decimals=3)).replace(".","p") + '_rho_v_' + str(np.round(rho_v, decimals=3)).replace(".","p") + '_dmu_' + str(np.round(dmu, decimals=3)).replace(".","p") + '_long_field'
 
 # Computes the f_res for the given parameters and sets up the folder structure for the simulations
 def read_params():
@@ -71,7 +82,8 @@ def read_params():
     for i, line in enumerate(data):
         d = line.split('\n')[0].split(',')
         epsilon[i], rho_v[i], dmu[i], t_max[i], save_interval[i], numb_of_simulations[i], f_res_init_guess[i] = [float(e) for e in d]
-        f_res[i] = compute_numeric_f_res_coex(8, rho_v[i], k_IB_model, dmu[i], epsilon[i], f_res_init_guess[i])
+        f_res[i] = compute_numeric_f_res_coex(10, rho_v[i], k_IB_model, dmu[i], epsilon[i], f_res_init_guess[i])
+        #f_res[i] = f_res_flex(rho_v[i], k_IB_model, dmu[i], epsilon[i], f_res_init_guess[i])
         name = create_name(epsilon[i], rho_v[i], dmu[i])
         names[i] = name
         if os.path.isdir('/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/Data/' + name):
@@ -88,3 +100,4 @@ def read_params():
 
 epsilon, rho_v, dmu, t_max, save_interval, numb_of_simulations, f_res, names = read_params()
 np.savetxt('/scratch/d/Daniel.Pals/Masterthesis/Coding/Analyse_Field_theory/Lattice_model/src_parameter_processing/processed_parameters.txt', [epsilon, rho_v, dmu, t_max, save_interval, numb_of_simulations, f_res, names], fmt='%s')
+

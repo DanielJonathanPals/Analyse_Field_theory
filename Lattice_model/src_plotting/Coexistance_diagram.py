@@ -6,12 +6,12 @@ import scipy.integrate as integrate
 if __name__ == '__main__':
     # General setup and defining coeffs
 
-    epsilon = -2.
+    epsilon = -2.95
     rho_v = 0.05
-    dmu = np.linspace(-2,2,30)
-    order = 4       # This neglects terms of order dmu^(order + 2)
+    dmu = np.linspace(-2,2,10)
+    order = 9       # This neglects terms of order dmu^(order + 2)
 
-    f_res_init_guess = 0.5
+    f_res_init_guess = 3.
 
     
 
@@ -67,7 +67,7 @@ def compute_first_order_f_res_coex(rho_v, k_IB, dmu, epsilon):
     k = lambda nB, f_res: k_IB(u(nB, f_res), f_res, dmu)
 
     term1 = lambda nB, f_res: -2 * nB**2 - 1 / epsilon * (nB * np.log(nB) + (1 - nB) * np.log(1 - nB) + np.log((1 + z_I(rho_v, f_res)) / z_B(rho_v, f_res)) * nB)
-    term2 = lambda f_res: integrate.quad(lambda nB: ((np.exp(dmu) - 1) * zI(f_res) * k(nB, f_res)) / (zB(f_res) + zI(f_res) * k(nB, f_res) + zB(f_res) * k(nB, f_res)) * (1 + zI(f_res) + zB(f_res)) / (1 + zI(f_res)), n_Bm(f_res), n_Bp(f_res))[0]
+    term2 = lambda f_res: integrate.quad(lambda nB: (dmu * zI(f_res) * k(nB, f_res)) / (zB(f_res) + zI(f_res) * k(nB, f_res) + zB(f_res) * k(nB, f_res)) * (1 + zI(f_res) + zB(f_res)) / (1 + zI(f_res)), n_Bm(f_res), n_Bp(f_res))[0]
     return fsolve(lambda f_res: term1(n_Bp(f_res), f_res) - term1(n_Bm(f_res), f_res) - 1/epsilon * term2(f_res), f_res_init_guess)[0]
 
 
@@ -86,31 +86,40 @@ def f_res_flex(rho_v, k_IB, dmu, epsilon):
 
 if __name__ == '__main__':
     # Plot results
+    
+    plt.figure(figsize=(6,3))
 
     # Model 1
 
     # Numeric solution
-    df = np.zeros(len(dmu))
-    for i in range(len(dmu)):
-        df[i] = compute_numeric_f_res_coex(order, rho_v, k_IB_model1, dmu[i], epsilon)
 
-    plt.plot(dmu, df, label='Numeric model 1 (5. order)',color='red')
-
-    # First order solution
+    # first order
     df = np.zeros(len(dmu))
     for i in range(len(dmu)):
         df[i] = compute_first_order_f_res_coex(rho_v, k_IB_model1, dmu[i], epsilon)
+    plt.plot(dmu, df, label=f'order {1}',color='black', lw = 1, ls='--')
 
-    plt.plot(dmu, df, label='First order model 1',color='red',ls='--')
+    for alph, ord in enumerate([3,6,7,8]):
+        df = np.zeros(len(dmu))
+        for i in range(len(dmu)):
+            df[i] = compute_numeric_f_res_coex(ord, rho_v, k_IB_model1, dmu[i], epsilon)
+
+        plt.plot(dmu, df, label=f'order {ord + 1}',color='black', alpha = (alph+1)/(order + 1), lw = 1)
+    
+    df = np.zeros(len(dmu))
+    for i in range(len(dmu)):
+        df[i] = compute_numeric_f_res_coex(order, rho_v, k_IB_model1, dmu[i], epsilon)
+    plt.plot(dmu, df, label=f'order {order + 1}',color='black', lw = 3)
+
 
     # FLEX solution
     df = np.zeros(len(dmu))
     for i in range(len(dmu)):
         df[i] = f_res_flex(rho_v, k_IB_model1, dmu[i], epsilon)
 
-    plt.plot(dmu, df, label='FLEX model 1',color='red',ls=':')
+    plt.plot(dmu, df, label='FLEX',color='blue',ls='--')
 
-
+    """
     # Model 2
 
     # Numeric solution
@@ -133,13 +142,15 @@ if __name__ == '__main__':
         df[i] = f_res_flex(rho_v, k_IB_model2, dmu[i], epsilon)
 
     plt.plot(dmu, df, label='FLEX model 1',color='blue',ls=':')
+    """
 
-
-    plt.legend()
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.xlim(-2, 2)
     plt.xlabel(r'$\beta \Delta \mu$')
-    plt.ylabel(r'$\beta \Delta f_{res}$')
+    plt.ylabel(r'$\beta \Delta f_{\mathrm{res.}}$')
     plt.grid()
+    plt.title('Coexistence line')
+    plt.tight_layout()
     plt.savefig(f'Coexistence_diagram_eps_{epsilon}_rho_v_{rho_v}.pdf')
     plt.show()
 
